@@ -1,4 +1,4 @@
-﻿#define STORAGE_LOGS 1
+﻿#define STORAGE_LOGS 0
 #define DEBUG 0
 
 #if DEBUG==1
@@ -203,6 +203,7 @@ if(window.self === window.top)
 	{	
 		var node_curr;
 		var cookie_labeled_weaker;
+		var cookie_labeled_stronger;
 		
 		var divs_iframes = (root_node.getElementsByTagName)?(Array.prototype.slice.call(root_node.getElementsByTagName('div'))).concat(Array.prototype.slice.call(root_node.getElementsByTagName('iframe'))) : [];
 		
@@ -211,15 +212,16 @@ if(window.self === window.top)
 		{
 			node_curr = nodes[node_i];				
 			cookie_labeled_weaker = isCookieLabeled_weaker(node_curr);		
+			cookie_labeled_stronger = isCookieLabeled(node_curr);
 			
-			if(	root_node !== document ||
+			if(	root_node !== document || // initial filter
 				node_i < 5 ||
 				nodes.length-1 - node_i < 10 || 
 				cookie_labeled_weaker )
 			{
-				if ( cookie_labeled_weaker || hasCookiesContent(node_curr) )
+				if ( cookie_labeled_stronger || hasCookiesContent(node_curr) )
 				{
-					if( !cookie_labeled_weaker )
+					if( !cookie_labeled_weaker ) // 
 					{
 						var node_childs = IF_DEFINED(node_curr.getElementsByTagName('div'),[]);
 						for( var i = 0 ; i < node_childs.length ; i++)

@@ -62,20 +62,22 @@ if(window.self === window.top)
  {
   var node_curr;
   var cookie_labeled_weaker;
+  var cookie_labeled_stronger;
   var divs_iframes = (root_node.getElementsByTagName)?(Array.prototype.slice.call(root_node.getElementsByTagName('div'))).concat(Array.prototype.slice.call(root_node.getElementsByTagName('iframe'))) : [];
   var nodes = (root_node === document)? divs_iframes : [root_node].concat(divs_iframes);
   for (var node_i = 0 ; node_i < nodes.length && window.CPB_blocked_ed5gdg7f !== true ; node_i++)
   {
    node_curr = nodes[node_i];
    cookie_labeled_weaker = isCookieLabeled_weaker(node_curr);
-   if( root_node !== document ||
+   cookie_labeled_stronger = isCookieLabeled(node_curr);
+   if( root_node !== document || // initial filter
     node_i < 5 ||
     nodes.length-1 - node_i < 10 ||
     cookie_labeled_weaker )
    {
-    if ( cookie_labeled_weaker || hasCookiesContent(node_curr) )
+    if ( cookie_labeled_stronger || hasCookiesContent(node_curr) )
     {
-     if( !cookie_labeled_weaker )
+     if( !cookie_labeled_weaker ) // 
      {
       var node_childs = ((typeof (node_curr.getElementsByTagName('div'))!=='undefined')?node_curr.getElementsByTagName('div'):[]);
       for( var i = 0 ; i < node_childs.length ; i++)
