@@ -1,0 +1,9 @@
+<NotepadPlus>
+    <Project name="CookiePopupBlocker">
+        <File name="cookiepopupblocker.user.js" />
+        <File name="make.bat" />
+    </Project>
+    <Project name="output">
+        <File name="build\cookiepopupblocker.user.js" />
+    </Project>
+</NotepadPlus>
