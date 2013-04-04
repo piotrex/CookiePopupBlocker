@@ -11,6 +11,6 @@ REM path %jsbeutify_folder%;%PATH%
 
 SET input=cookiepopupblocker.user.js
 REM SET output=cookiepopupblocker.user.js
-SET output=cookiepopupblocker-no_logs.user.js
-REM SET output=cookiepopupblocker-logs.user.js
+REM SET output=cookiepopupblocker-no_logs.user.js
+SET output=cookiepopupblocker-logs.user.js
 gcc -E -P -C -w -x c  "%project_folder%\%input%" -o "%project_folder%\build\%output%" || pause

@@ -7,7 +7,7 @@
 // @include        http://*.pl*
 // @include        https://*.pl*
 // @grant          none
-// @updateURL      http://userscripts.org/scripts/source/163699.meta.js
+// @updateURL      https://raw.github.com/piotrex/CookiePopupBlocker/master/build/cookiepopupblocker-no_logs.user.js
 // @downloadURL    https://raw.github.com/piotrex/CookiePopupBlocker/master/build/cookiepopupblocker-no_logs.user.js
 // @license        GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
 // @icon           https://raw.github.com/piotrex/CookiePopupBlocker/master/icon/32x32.png

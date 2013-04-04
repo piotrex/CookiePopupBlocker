@@ -11,7 +11,7 @@
 // @grant          GM_setValue
 // @grant          GM_deleteValue
 // @grant          GM_registerMenuCommand
-// @updateURL      http://userscripts.org/scripts/source/163699.meta.js
+// @updateURL      https://raw.github.com/piotrex/CookiePopupBlocker/master/build/cookiepopupblocker-no_logs.user.js
 // @downloadURL    https://raw.github.com/piotrex/CookiePopupBlocker/master/build/cookiepopupblocker-logs.user.js
 // @license        GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
 // @icon           https://raw.github.com/piotrex/CookiePopupBlocker/master/icon/32x32.png

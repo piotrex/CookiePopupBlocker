@@ -1,4 +1,4 @@
-﻿#define STORAGE_LOGS 0
+﻿#define STORAGE_LOGS 1
 #define DEBUG 0
 
 #if DEBUG==1
@@ -30,7 +30,7 @@
 // @grant          GM_deleteValue
 // @grant          GM_registerMenuCommand
 #endif
-// @updateURL      http://userscripts.org/scripts/source/163699.meta.js
+// @updateURL      https://raw.github.com/piotrex/CookiePopupBlocker/master/build/cookiepopupblocker-no_logs.user.js
 #if STORAGE_LOGS==1
 // @downloadURL    https://raw.github.com/piotrex/CookiePopupBlocker/master/build/cookiepopupblocker-logs.user.js
 #elif STORAGE_LOGS==0
