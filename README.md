@@ -19,8 +19,10 @@ Ze 100 najpopularniejszych w Polsce stron ([wg ALEXA](http://e-spec.pl/najpoular
 
 co daje ok. 90% wykrywalności.
 
-[Lista stron z problemami](https://github.com/piotrex/CookiePopupBlocker/blob/master/tests.md)
+[Lista stron z problemami z blokowaniem](https://github.com/piotrex/CookiePopupBlocker/blob/master/tests.md)
 
+### Problemy ###
+Niestety czasem potrzeba odczekać parę sekund aż komunikat będzie zablokowany.
 
 ### Podobne projekty ###
 - [https://github.com/r4vi/block-the-eu-cookie-shit-list](https://github.com/r4vi/block-the-eu-cookie-shit-list)

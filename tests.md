@@ -4,7 +4,7 @@
 - styl.pl
 - linked.in
 
-### popupy w ramkach: ###
+### popupy w ramkach (zablokowane): ###
 - onet
 - plejada
 - zumi
