@@ -1,5 +1,4 @@
-﻿#define STORAGE_LOGS 0
-#define DEBUG 0
+﻿#define DEBUG 0
 
 #if DEBUG==1
 #define DEBUGGER debugger;
@@ -199,6 +198,7 @@ if(window.self === window.top)
 			return false;
 	}
 	
+	// run at document.body has been loaded (root_node=document.body) or it is inserted node to doc after doc loaded
 	function popupBlock(root_node/*, call_when_not_removed*/)
 	{	
 		var node_curr;
@@ -219,10 +219,11 @@ if(window.self === window.top)
 				nodes.length-1 - node_i < 10 || 
 				cookie_labeled_weaker )
 			{
-				if ( cookie_labeled_stronger || hasCookiesContent(node_curr) )
+				if ( cookie_labeled_stronger || hasCookiesContent(node_curr) ) // if ( this node is really cookie popup )
 				{
-					if( !cookie_labeled_weaker ) // 
-					{
+					// prevent interpret and block parent of cookie node
+					if( !cookie_labeled_stronger ) 
+					{ 
 						var node_childs = IF_DEFINED(node_curr.getElementsByTagName('div'),[]);
 						for( var i = 0 ; i < node_childs.length ; i++)
 							if(isCookieLabeled(node_childs[i]))
@@ -252,7 +253,7 @@ if(window.self === window.top)
 	
 	
 	function dom_listener(mutations, observer)
-	{// DEBUGGER
+	{
 		for (var i = 0 ; i < mutations.length ; i++)
 		{
 			var added_nodes = mutations[i].addedNodes;

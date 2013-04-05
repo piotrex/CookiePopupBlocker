@@ -4,6 +4,7 @@
         <File name="make.bat" />
     </Project>
     <Project name="output">
-        <File name="build\cookiepopupblocker.user.js" />
+        <File name="build\cookiepopupblocker-no_logs.user.js" />
+        <File name="build\cookiepopupblocker-logs.user.js" />
     </Project>
 </NotepadPlus>
