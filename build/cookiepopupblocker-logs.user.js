@@ -4,8 +4,7 @@
 // @description    Blokuje banery z informacją o używaniu przez witrynę cookies
 // @run-at         document-start
 // @namespace      https://github.com/piotrex
-// @include        http://*.pl*
-// @include        https://*.pl*
+// @include        *
 // @grant          GM_listValues
 // @grant          GM_getValue
 // @grant          GM_setValue

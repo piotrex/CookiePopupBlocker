@@ -14,7 +14,7 @@
 // @description    Blokuje banery z informacją o używaniu przez witrynę cookies
 // @run-at         document-start
 // @namespace      https://github.com/piotrex
-#if DEBUG==1
+#if DEBUG==1 || STORAGE_LOGS==1
 // @include        *
 #elif DEBUG==0
 // @include        http://*.pl*
