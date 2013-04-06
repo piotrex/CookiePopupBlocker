@@ -1,4 +1,4 @@
-﻿#define DEBUG 0
+﻿#define DEBUG 1
 
 #if DEBUG==1
 #define DEBUGGER debugger;
@@ -10,7 +10,7 @@
 
 // ==UserScript==
 // @name           CookiePopupBlocker
-// @version        1.1
+// @version        1.1.1
 // @description    Blokuje banery z informacją o używaniu przez witrynę cookies
 // @run-at         document-start
 // @namespace      https://github.com/piotrex
@@ -29,11 +29,12 @@
 // @grant          GM_deleteValue
 // @grant          GM_registerMenuCommand
 #endif
-// @updateURL      https://raw.github.com/piotrex/CookiePopupBlocker/master/build/cookiepopupblocker-no_logs.user.js
 #if STORAGE_LOGS==1
 // @downloadURL    https://raw.github.com/piotrex/CookiePopupBlocker/master/build/cookiepopupblocker-logs.user.js
+// @updateURL      https://raw.github.com/piotrex/CookiePopupBlocker/master/build/cookiepopupblocker-logs.user.js
 #elif STORAGE_LOGS==0
 // @downloadURL    https://raw.github.com/piotrex/CookiePopupBlocker/master/build/cookiepopupblocker-no_logs.user.js
+// @updateURL      https://raw.github.com/piotrex/CookiePopupBlocker/master/build/cookiepopupblocker-no_logs.user.js
 #endif
 // @license        GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
 // @icon           https://raw.github.com/piotrex/CookiePopupBlocker/master/icon/32x32.png
@@ -170,7 +171,8 @@ if(window.self === window.top)
 			return false;
 	}
 	
-	var cookie_words = [/cookie|ciastecz/i, /u(ż|z)ywa|korzyst|stosuje|pos(ł|l)ugu/i, /wiedzie|wi(ę|e)cej|informacj|szczeg|polity|akcept|zgod|czym s(ą|a)/i];
+	var cookie_words = [/cookie|ciastecz/i, /u(ż|z)ywa|korzyst|stosuje|pos(ł|l)ugu/i, /wiedzie|wi(ę|e)cej|informacj|szczeg|polity|akcept|zgod|czym s(ą|a)|przegl(a|ą)dark/i];
+	var footer_words = [/©|copyright/i];
 	function hasCookiesContent(node)
 	{
 		var node_text;
@@ -192,7 +194,10 @@ if(window.self === window.top)
 			cookie_words[1].test(node_text) && 
 			cookie_words[2].test(node_text) )
 		{		
-			return true;
+			if (footer_words[0].test(node_text)) // if (node is footer)
+				return false;
+			else
+				return true;
 		}
 		else
 			return false;
@@ -286,28 +291,40 @@ if(window.self === window.top)
 	// }	
 	//setTimeout(trigger,	interval);
 	
-	document.onreadystatechange = function()
-	{
-		if(document.readyState === 'interactive')
+	document.addEventListener(
+		'readystatechange', 
+		function()
 		{
-			var observer = new MutationObserver(dom_listener);		
-			observer.observe(document, {childList : true, subtree: true});
-			
-			if( ! BLOCKED )
-				popupBlock(	
-					document/*,
-					null*/
-				);
-		}
+			if(document.readyState === 'interactive')
+			{
+				var observer = new MutationObserver(dom_listener);		
+				observer.observe(document, {childList : true, subtree: true});
+				
+				if( ! BLOCKED )
+					popupBlock(	
+						document/*,
+						null*/
+					);
+			}
+		}, 
+		/*useCapture = */ true
+	);
+	
 	#if STORAGE_LOGS==1
-		else if(document.readyState === 'complete')
+	document.addEventListener(
+		'readystatechange', 
+		function()
 		{
-			var storage_log = JSON.parse(GM_getValue(window.location.hostname, {}));
-			storage_log['cookie_found'] = /cookie/i.test(document.body.textContent);
-			GM_setValue(window.location.hostname, JSON.stringify(storage_log));
+			if(document.readyState === 'complete')
+			{
+				var storage_log = JSON.parse(GM_getValue(window.location.hostname, {}));
+				storage_log['cookie_found'] = /cookie/i.test(document.body.textContent);
+				GM_setValue(window.location.hostname, JSON.stringify(storage_log));
+			}
 		}
+	);
 	#endif
-	};
+		
 	
 	#if STORAGE_LOGS==1
 	

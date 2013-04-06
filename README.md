@@ -12,14 +12,14 @@ Skrypt do Greasemonkey (*) blokujący wyskakujące okienka/banery z informacjami
 ### Testy ###
 Ze 100 najpopularniejszych w Polsce stron ([wg ALEXA](http://e-spec.pl/najpoularniejsze-polskie-strony-www)):
 
- - 4 strony z komunikatem, który nie został zablokowany,
- - 1 strona z "false positive" (http://www.interia.pl),
- - 44 strony mają blokowany baner,
+ - 1 strona z komunikatem, który nie został zablokowany,
+ - 0 stron z "false positive",
+ - 48 strony mają blokowany baner,
  - 49 stron nie wyświetla żadnego komunikatu o ciasteczkach (większość na niepolskich serwerach),
 
-co daje ok. 90% wykrywalności.
+Łącznie na ok. 180 komunikatów 92% zablokowane, 2 "false positive"
 
-[Lista stron z problemami z blokowaniem](https://github.com/piotrex/CookiePopupBlocker/blob/master/tests.md)
+[Lista wszystkich stron z problem blokowania](https://github.com/piotrex/CookiePopupBlocker/blob/master/tests.md)
 
 ### Problemy ###
 Niestety czasem potrzeba odczekać parę sekund aż komunikat będzie zablokowany.

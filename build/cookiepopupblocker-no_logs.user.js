@@ -1,14 +1,13 @@
 // ==UserScript==
 // @name           CookiePopupBlocker
-// @version        1.1
+// @version        1.1.1
 // @description    Blokuje banery z informacją o używaniu przez witrynę cookies
 // @run-at         document-start
 // @namespace      https://github.com/piotrex
-// @include        http://*.pl*
-// @include        https://*.pl*
+// @include        *
 // @grant          none
-// @updateURL      https://raw.github.com/piotrex/CookiePopupBlocker/master/build/cookiepopupblocker-no_logs.user.js
 // @downloadURL    https://raw.github.com/piotrex/CookiePopupBlocker/master/build/cookiepopupblocker-no_logs.user.js
+// @updateURL      https://raw.github.com/piotrex/CookiePopupBlocker/master/build/cookiepopupblocker-no_logs.user.js
 // @license        GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
 // @icon           https://raw.github.com/piotrex/CookiePopupBlocker/master/icon/32x32.png
 // ==/UserScript==
@@ -32,7 +31,8 @@ if(window.self === window.top)
   else
    return false;
  }
- var cookie_words = [/cookie|ciastecz/i, /u(ż|z)ywa|korzyst|stosuje|pos(ł|l)ugu/i, /wiedzie|wi(ę|e)cej|informacj|szczeg|polity|akcept|zgod|czym s(ą|a)/i];
+ var cookie_words = [/cookie|ciastecz/i, /u(ż|z)ywa|korzyst|stosuje|pos(ł|l)ugu/i, /wiedzie|wi(ę|e)cej|informacj|szczeg|polity|akcept|zgod|czym s(ą|a)|przegl(a|ą)dark/i];
+ var footer_words = [/©|copyright/i];
  function hasCookiesContent(node)
  {
   var node_text;
@@ -53,12 +53,15 @@ if(window.self === window.top)
    cookie_words[1].test(node_text) &&
    cookie_words[2].test(node_text) )
   {
-   return true;
+   if (footer_words[0].test(node_text)) // if (node is footer)
+    return false;
+   else
+    return true;
   }
   else
    return false;
  }
- // run at document.body has been loaded (root_node=document.body) or it is inserted node to doc after doc loaded
+ // runed at document.body has been loaded (root_node=document.body) or it is inserted node to doc after doc loaded
  function popupBlock(root_node/*, call_when_not_removed*/)
  {
   var node_curr;
@@ -125,18 +128,22 @@ if(window.self === window.top)
    // setTimeout(trigger, interval);
  // }	
  //setTimeout(trigger,	interval);
- document.onreadystatechange = function()
- {
-  if(document.readyState === 'interactive')
+ document.addEventListener(
+  'readystatechange',
+  function()
   {
-   var observer = new MutationObserver(dom_listener);
-   observer.observe(document, {childList : true, subtree: true});
-   if( ! window.CPB_blocked_ed5gdg7f )
-    popupBlock(
-     document/*,
+   if(document.readyState === 'interactive')
+   {
+    var observer = new MutationObserver(dom_listener);
+    observer.observe(document, {childList : true, subtree: true});
+    if( ! window.CPB_blocked_ed5gdg7f )
+     popupBlock(
+      document/*,
 
-					null*/
-    );
-  }
- };
+						null*/
+     );
+   }
+  },
+  /*useCapture = */ true
+ );
 }
