@@ -1,7 +1,7 @@
 CookiePopupBlocker
 ==================
 
-Skrypt do Greasemonkey (*) blokujący wyskakujących okienek/banerów z informacjami o używaniu ciasteczek.
+Skrypt do Greasemonkey (*) blokujący wyskakujące okienka/banery z informacjami o używaniu ciasteczek.
 
 [](https://docs.google.com/spreadsheet/ccc?key=0AgtalLhlHdWqdEljOTBWa2JhMmF2ei1ZZWxmVU5IZFE&usp=sharing)
 

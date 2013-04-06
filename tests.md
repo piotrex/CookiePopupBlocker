@@ -13,9 +13,7 @@
 ### niezablokowane: ###
 - interia
 - elektroda środek
-- goldenline
-- pracuj.pl
-- skapiec.pl
+- skapiec.pl środek
 - citeam.pl false pos
 - styl.pl interia
 - interia.tv interia

@@ -16,7 +16,7 @@
 // @namespace      https://github.com/piotrex
 #if DEBUG==1 || STORAGE_LOGS==1
 // @include        *
-#elif DEBUG==0
+#else
 // @include        http://*.pl*
 // @include        https://*.pl*
 #endif
@@ -198,7 +198,7 @@ if(window.self === window.top)
 			return false;
 	}
 	
-	// run at document.body has been loaded (root_node=document.body) or it is inserted node to doc after doc loaded
+	// runed at document.body has been loaded (root_node=document.body) or it is inserted node to doc after doc loaded
 	function popupBlock(root_node/*, call_when_not_removed*/)
 	{	
 		var node_curr;
@@ -234,7 +234,7 @@ if(window.self === window.top)
 							}							
 					}
 				
-				#if STORAGE_LOGS==1 || DEBUG==1
+				#if STORAGE_LOGS==1
 					GM_setValue(window.location.hostname, JSON.stringify({css:getCssSelector(node_curr), text:IF_DEFINED(node_curr.textContent,''), blocked:true, tag_name: node_curr.tagName}));
 					cmd_sendLogs();
 					cmd_clearLogs();					
