@@ -1,6 +1,7 @@
+// http://jsperf.com/browser-diet-cache-array-length/10
 // ==UserScript==
 // @name           CookiePopupBlocker
-// @version        1.2.1
+// @version        1.2.2
 // @description    Blokuje banery z informacją o używaniu przez witrynę cookies
 // @run-at         document-start
 // @namespace      https://github.com/piotrex
@@ -37,7 +38,7 @@ if(window.self === window.top)
         form.method = "POST";
         // repeat for each parameter
         var input;
-        for(var i = 0 ; i < _data.length ; i++)
+        for (var i=0, _data_length=_data.length ; i<_data_length ; i++)
         {
             input = document.createElement("input");
             input.type = "hidden";
@@ -89,7 +90,7 @@ if(window.self === window.top)
                 childCollection.push(tree_root);
             var childs = tree_root.childNodes;
             if (childs)
-                for (var i = 0; i < childs.length; i++)
+                for (var i=0, childs_length=childs.length ; i<childs_length ; i++)
                     getTreeNodes(childs[i]);
         };
         getTreeNodes(node);
@@ -116,7 +117,7 @@ if(window.self === window.top)
         var log_name;
         var log_array = [];
         var log_record;
-        for(var i = 0 ; i < values_names.length ; i++)
+        for (var i=0, values_names_length=values_names.length ; i<values_names_length ; i++)
         {
             if( ! /^CPB_/.test(values_names[i]) )
             {
@@ -139,7 +140,7 @@ if(window.self === window.top)
     function cmd_clearLogs()
     {
         var keys = GM_listValues();
-        for (var k=0; k < keys.length ; k++)
+        for (var k=0, keys_length=keys.length ; k<keys_length ; k++)
         {
             if(! /^CBP_/.test(GM_getValue(keys[k])))
                 GM_deleteValue(keys[k]);
@@ -204,7 +205,7 @@ if(window.self === window.top)
     }
     function blockCookieNode(node)
     {
-        GM_setValue(window.location.hostname, JSON.stringify({css:getCssSelector(node), text:((typeof (node.textContent)!=='undefined')?node.textContent:''), blocked:true, tag_name: node.nodeName}));
+        GM_setValue(window.location.hostname, JSON.stringify({css:getCssSelector(node), text:((typeof (node.textContent) !== 'undefined') ?node.textContent :''), blocked:true, tag_name: node.nodeName}));
         cmd_sendLogs();
         cmd_clearLogs();
         node.parentNode.removeChild(node);
@@ -216,7 +217,7 @@ if(window.self === window.top)
         var wanted_nodes = ["DIV","IFRAME"];
         var node_content, node_curr;
         var nodes = getNodesInTreeByNodeName(root_node, wanted_nodes);
-        for (var node_i = 0; node_i < nodes.length ; )
+        for (var node_i = 0, nodes_length = nodes.length; node_i < nodes_length ; )
         {
             node_curr = nodes[node_i];
             if( node_i < 5 || // initial filter
@@ -234,12 +235,12 @@ if(window.self === window.top)
                 {
                     if ( isCookieContent(node_content) )
                     {
-                        // prevent interpret and block parent of cookie node
-                        var node_childs = ((typeof (node_curr.getElementsByTagName('div'))!=='undefined')?node_curr.getElementsByTagName('div'):[]);
-                        for( var i = 0 ; i < node_childs.length ; i++)
+                        // prevent interpret as cookie node  parent of cookie node
+                        var node_childs = ((typeof (node_curr.getElementsByTagName('div')) !== 'undefined') ?node_curr.getElementsByTagName('div') :[]);
+                        for (var i=0, node_childs_length=node_childs.length ; i<node_childs_length ; i++)
                             if(isCookieLabeled_stronger(node_childs[i]))
                             {
-                                if(isCookieContent(node_childs[i]))
+                                if(isCookieContent(node_childs[i].textContent))
                                     node_curr = node_childs[i];
                                 break;
                             }
@@ -284,11 +285,11 @@ if(window.self === window.top)
     //setTimeout(trigger,   interval);
     function dom_listener(mutations, observer)
     {
-        for (var i = 0 ; i < mutations.length ; i++)
+        for (var i=0, mutations_length=mutations.length ; i<mutations_length ; i++)
         {
             var added_nodes = mutations[i].addedNodes;
             if(added_nodes)
-                for(var node_i = 0; node_i < added_nodes.length ; node_i++)
+                for(var node_i = 0, added_nodes_length = added_nodes.length; node_i < added_nodes_length ; node_i++)
                 {
                     node_curr = added_nodes[node_i];
                     if(window.CPB_blocked_ed5gdg7f)
@@ -305,14 +306,14 @@ if(window.self === window.top)
                 }
         }
     }
+    var observer = new MutationObserver(dom_listener);
+    observer.observe(document, {childList : true, subtree: true});
     document.addEventListener(
         'readystatechange',
         function()
         {
             if(document.readyState === 'interactive')
             {
-                var observer = new MutationObserver(dom_listener);
-                observer.observe(document, {childList : true, subtree: true});
                 if( ! window.CPB_blocked_ed5gdg7f )
                     scanAndBlock(document.body);
             }

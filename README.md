@@ -24,7 +24,8 @@ Ze 100 najpopularniejszych w Polsce stron ([wg ALEXA](http://e-spec.pl/najpoular
 [Lista wszystkich stron z problem blokowania](https://github.com/piotrex/CookiePopupBlocker/blob/master/tests.md)
 
 ### Problemy ###
-Niestety czasem potrzeba odczekać parę sekund aż komunikat będzie zablokowany.
+<del>Niestety czasem potrzeba odczekać parę sekund aż komunikat będzie zablokowany.</del>
+Problem naprawiony!
 
 ### Podobne projekty ###
 - [https://github.com/r4vi/block-the-eu-cookie-shit-list](https://github.com/r4vi/block-the-eu-cookie-shit-list)

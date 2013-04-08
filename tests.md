@@ -18,6 +18,7 @@
 - http://infoludek.pl/ - środek
 - http://www.pkp.com.pl/ textContent > 1000 (1248)
 - lifehacking.pl - "p"
+- http://www.vwgolf.pl/ ??
 
 ### zablokowane, ale są pozostałości ###
 - (brak)

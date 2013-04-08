@@ -9,13 +9,14 @@
 #define DEBUGGER  
 #endif
 
-#define IF_DEFINED(x,default) ((typeof (x)!=='undefined')?x:default)
-
+#define IF_DEFINED(x,default) ((typeof (x) !== 'undefined') ?x :default)
 #define SHOW_WHEN(x,when_is) (  ((x)==when_is) ?(alert(#x + "=\n\n" + String(x)),(x)) :(x)  )
+// http://jsperf.com/browser-diet-cache-array-length/10
+#define FOR_EACH(array,counter) for (var counter=0, array ## _length=array.length ; counter<array ## _length ; counter++)
 
 // ==UserScript==
 // @name           CookiePopupBlocker
-// @version        1.2.1
+// @version        1.2.2
 // @description    Blokuje banery z informacją o używaniu przez witrynę cookies
 // @run-at         document-start
 // @namespace      https://github.com/piotrex
@@ -75,7 +76,7 @@ if(window.self === window.top)
 
         // repeat for each parameter
         var input;
-        for(var i = 0 ; i < _data.length ; i++) 
+        FOR_EACH(_data,i) 
         {
             input = document.createElement("input");
             input.type = "hidden";
@@ -132,7 +133,7 @@ if(window.self === window.top)
             
             var childs = tree_root.childNodes;
             if (childs)
-                for (var i = 0; i < childs.length; i++)
+                FOR_EACH(childs,i)
                     getTreeNodes(childs[i]);
         };
         
@@ -164,7 +165,7 @@ if(window.self === window.top)
         var log_name;
         var log_array = [];
         var log_record;
-        for(var i = 0 ; i < values_names.length ; i++)
+        FOR_EACH(values_names,i)
         {
             if( ! /^CPB_/.test(values_names[i]) )
             {
@@ -187,14 +188,14 @@ if(window.self === window.top)
     function cmd_clearLogs()
     {
         var keys = GM_listValues();
-        for (var k=0; k < keys.length ; k++) 
+        FOR_EACH(keys,k)
         {
             if(! /^CBP_/.test(GM_getValue(keys[k])))
                 GM_deleteValue(keys[k]);
         }
     }    
     #endif
-
+    
     var cookie_ids = [/cook/i];
     function isCookieLabeled_stronger(node)
     {
@@ -278,12 +279,12 @@ if(window.self === window.top)
         var node_content, node_curr;
         
         var nodes = getNodesInTreeByNodeName(root_node, wanted_nodes);
-        for (var node_i = 0; node_i < nodes.length ; )
+        for (var node_i = 0, nodes_length = nodes.length; node_i < nodes_length ; )
         {
             node_curr = nodes[node_i];
         #if DEBUG==1
             var is_dup = false;
-            for(var j = 0 ; j< scanned.length ; j++)
+            FOR_EACH(scanned,j)
                 if(node_curr === scanned[j])
                 {
                     is_dup  = true;
@@ -309,12 +310,12 @@ if(window.self === window.top)
                 {
                     if ( isCookieContent(node_content) )
                     {
-                        // prevent interpret and block parent of cookie node
+                        // prevent interpret as cookie node  parent of cookie node
                         var node_childs = IF_DEFINED(node_curr.getElementsByTagName('div'),[]);
-                        for( var i = 0 ; i < node_childs.length ; i++)
+                        FOR_EACH(node_childs,i)
                             if(isCookieLabeled_stronger(node_childs[i]))
                             {
-                                if(isCookieContent(node_childs[i]))
+                                if(isCookieContent(node_childs[i].textContent))
                                     node_curr = node_childs[i];
                                 break;
                             }                           
@@ -367,11 +368,11 @@ if(window.self === window.top)
     
     function dom_listener(mutations, observer)
     {
-        for (var i = 0 ; i < mutations.length ; i++)
+        FOR_EACH(mutations,i)
         {
             var added_nodes = mutations[i].addedNodes;
             if(added_nodes)
-                for(var node_i = 0; node_i < added_nodes.length ; node_i++)
+                for(var node_i = 0, added_nodes_length = added_nodes.length; node_i < added_nodes_length ; node_i++)
                 {
                     node_curr = added_nodes[node_i];
                     if(BLOCKED)
@@ -391,15 +392,15 @@ if(window.self === window.top)
         }
     }
     
+    var observer = new MutationObserver(dom_listener);      
+    observer.observe(document, {childList : true, subtree: true});
+    
     document.addEventListener(
         'readystatechange', 
         function()
         {
             if(document.readyState === 'interactive')
             {
-                var observer = new MutationObserver(dom_listener);      
-                observer.observe(document, {childList : true, subtree: true});
-                
                 if( ! BLOCKED )
                     scanAndBlock(document.body);
             }
