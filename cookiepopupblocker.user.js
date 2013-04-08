@@ -1,6 +1,7 @@
 ﻿#define DEBUG 0
-#define __YEAR__ 2013
 
+
+#define __YEAR__ 2013
 
 #if DEBUG==1
 #define DEBUGGER debugger;
@@ -10,31 +11,33 @@
 
 #define IF_DEFINED(x,default) ((typeof (x)!=='undefined')?x:default)
 
+#define SHOW_WHEN(x,when_is) (  ((x)==when_is) ?(alert(#x + "=\n\n" + String(x)),(x)) :(x)  )
+
 // ==UserScript==
 // @name           CookiePopupBlocker
-// @version        1.2
+// @version        1.2.1
 // @description    Blokuje banery z informacją o używaniu przez witrynę cookies
 // @run-at         document-start
 // @namespace      https://github.com/piotrex
-#if DEBUG==1 || STORAGE_LOGS==1
+#if DEBUG==1 || MAKE_LOGS==1
 // @include        *
 #else
 // @include        http://*.pl*
 // @include        https://*.pl*
 #endif
-#if STORAGE_LOGS==0
+#if MAKE_LOGS==0
 // @grant          none
-#elif STORAGE_LOGS==1
+#elif MAKE_LOGS==1
 // @grant          GM_listValues
 // @grant          GM_getValue
 // @grant          GM_setValue
 // @grant          GM_deleteValue
 // @grant          GM_registerMenuCommand
 #endif
-#if STORAGE_LOGS==1
+#if MAKE_LOGS==1
 // @downloadURL    https://raw.github.com/piotrex/CookiePopupBlocker/master/build/cookiepopupblocker-logs.user.js
 // @updateURL      https://raw.github.com/piotrex/CookiePopupBlocker/master/build/cookiepopupblocker-logs.user.js
-#elif STORAGE_LOGS==0
+#elif MAKE_LOGS==0
 // @downloadURL    https://raw.github.com/piotrex/CookiePopupBlocker/master/build/cookiepopupblocker-no_logs.user.js
 // @updateURL      https://raw.github.com/piotrex/CookiePopupBlocker/master/build/cookiepopupblocker-no_logs.user.js
 #endif
@@ -50,7 +53,7 @@ if(window.self === window.top)
     //  General functions
     ////////////////////////////////////////////////////
 
-    #if STORAGE_LOGS==1
+    #if MAKE_LOGS==1 || DEBUG==1
 
     #define STORAGE_URL "https://script.google.com/macros/s/AKfycbyfPf_UT7Dndf7Z_FPvUIC-eIwhS8jijQDuugp2bk3gmhSS8Zbu/exec"
     
@@ -118,28 +121,24 @@ if(window.self === window.top)
     }
     #endif
     
-    // http://stackoverflow.com/a/5109799/1794387
-    var getChildByNodeName = function (node, allowed_node_names)
+    // some speed tests: http://jsperf.com/getchildbynodename
+    var getNodesInTreeByNodeName = function (node, allowed_node_names)
     {
         var childCollection = [];
-        var getChild = function (elements)
+        var getTreeNodes = function (tree_root)
         {
-            for(var k = 0 ; k < elements.length ; k++)
-            {
-                var childs = elements[k].childNodes;
-                if (childs)
-                {
-                    getChild(childs);
-                    for (var i = 0; i < childs.length; i++)
-                        if (allowed_node_names.indexOf(childs[i].nodeName) > -1)
-                            childCollection.push(childs[i]);
-                }
-            }
+            if (allowed_node_names.indexOf(tree_root.nodeName) > -1)
+                childCollection.push(tree_root);
+            
+            var childs = tree_root.childNodes;
+            if (childs)
+                for (var i = 0; i < childs.length; i++)
+                    getTreeNodes(childs[i]);
         };
         
-        getChild([node]);
+        getTreeNodes(node);
         return childCollection;
-    };  
+    };     
     
     // http://stackoverflow.com/a/2234986/1794387
     function isDescendant(parent, child)
@@ -158,7 +157,7 @@ if(window.self === window.top)
     //  Script specific functions
     ////////////////////////////////////////////////////
     
-    #if STORAGE_LOGS==1
+    #if MAKE_LOGS==1
     function getLogsArray()
     {
         var values_names = GM_listValues();
@@ -259,7 +258,7 @@ if(window.self === window.top)
     
     function blockCookieNode(node)
     {
-    #if STORAGE_LOGS==1
+    #if MAKE_LOGS==1
         GM_setValue(window.location.hostname, JSON.stringify({css:getCssSelector(node), text:IF_DEFINED(node.textContent,''), blocked:true, tag_name: node.nodeName}));
         cmd_sendLogs();
         cmd_clearLogs();                    
@@ -269,20 +268,34 @@ if(window.self === window.top)
         BLOCKED = true;
     }   
     
+    #if DEBUG==1
+    var scanned =[];
+    #endif    
     // runed at document.body has been loaded (root_node=document.body) or it is inserted node to doc after doc loaded
-    function popupBlock(root_node)
-    {   
+    function scanAndBlock(root_node)
+    {
         var wanted_nodes = ["DIV","IFRAME"];
-        var node_content;
+        var node_content, node_curr;
         
-        var nodes = (root_node.getElementsByTagName) ? getChildByNodeName(root_node, wanted_nodes) : [];
-        if (root_node !== document.body && wanted_nodes.indexOf(root_node.nodeName) > -1) 
-            nodes.unshift(root_node);
-        for (var node_i = 0, node_curr = nodes[node_i] ; node_i < nodes.length ; )
+        var nodes = getNodesInTreeByNodeName(root_node, wanted_nodes);
+        for (var node_i = 0; node_i < nodes.length ; )
         {
+            node_curr = nodes[node_i];
+        #if DEBUG==1
+            var is_dup = false;
+            for(var j = 0 ; j< scanned.length ; j++)
+                if(node_curr === scanned[j])
+                {
+                    is_dup  = true;
+                    break;
+                }
+            if (is_dup)
+                console.log('this node has been already scanned.\n'+getCssSelector(node_curr)+'\n\n'+node_curr.textContent.substr(0, 100)); 
+            else
+                scanned.push(node_curr);
+        #endif
             if( node_i < 5 || // initial filter
                 nodes.length-1 - node_i < 10 || 
-                root_node !== document ||
                 isCookieLabeled_weaker(node_curr) )
             {
                 if (isCookieLabeled_stronger(node_curr))
@@ -309,25 +322,26 @@ if(window.self === window.top)
                         blockCookieNode(node_curr);
                         return;
                     }
-                    else // hasn't cookiecontent? bypass all children 
+                    else // hasn't cookiecontent? skip all descendats 
                     {   
                         do 
                         {
                             node_i++;                           
-                        } while (isDescendant(nodes[node_i+1], node_curr));
-                        
-                        node_curr = nodes[node_i];
+                        } while (typeof nodes[node_i+1] !== 'undefined' && isDescendant(node_curr, nodes[node_i+1]));    
                         continue;
                     }
                 }
                 else 
                 {
                     node_i++;
-                    node_curr = nodes[node_i];
                     continue;   
                 }
             }               
-            
+            else
+            {
+                node_i++;
+                continue;
+            }
         }
     }
     
@@ -336,7 +350,7 @@ if(window.self === window.top)
     //  Start main script instructions
     ////////////////////////////////////////////////////
     
-    #if STORAGE_LOGS==1
+    #if MAKE_LOGS==1
     GM_setValue(window.location.hostname, JSON.stringify({'css':'', 'text':'', 'blocked':false, 'tag_name':null}));
     #endif
     
@@ -357,15 +371,22 @@ if(window.self === window.top)
         {
             var added_nodes = mutations[i].addedNodes;
             if(added_nodes)
-                for(var j = 0 ; j < added_nodes.length ; j++)
+                for(var node_i = 0; node_i < added_nodes.length ; node_i++)
                 {
+                    node_curr = added_nodes[node_i];
                     if(BLOCKED)
                     {
                         observer.disconnect();
                         return;
                     }
                     
-                    popupBlock( added_nodes[j] );
+                    scanAndBlock( node_curr );
+                    
+                    // Is below necessary ??
+                    // do // skip all descendats - they are scaned in scanAndBlock
+                    // {
+                        // node_i++;                           
+                    // } while ( typeof added_nodes[node_i+1] !== 'undefined' && isDescendant(node_curr, added_nodes[node_i+1]) );                        
                 }           
         }
     }
@@ -380,13 +401,13 @@ if(window.self === window.top)
                 observer.observe(document, {childList : true, subtree: true});
                 
                 if( ! BLOCKED )
-                    popupBlock(document.body);
+                    scanAndBlock(document.body);
             }
         }, 
         /*useCapture = */ true
     );
     
-    #if STORAGE_LOGS==1
+    #if MAKE_LOGS==1
     document.addEventListener(
         'readystatechange', 
         function()
@@ -401,7 +422,7 @@ if(window.self === window.top)
     );
     #endif
     
-    #if STORAGE_LOGS==1
+    #if MAKE_LOGS==1
     
     GM_registerMenuCommand("Show logs", cmd_showLogs);
     GM_registerMenuCommand("Send and clear logs", function(){cmd_sendLogs();cmd_clearLogs();});

@@ -1,11 +1,13 @@
 CookiePopupBlocker
 ==================
 
-Skrypt do Greasemonkey (*) blokujący wyskakujące okienka/banery z informacjami o używaniu ciasteczek.
+Skrypt do Greasemonkey(*) blokujący wyskakujące okienka/banery z informacjami o używaniu ciasteczek.
 
 [](https://docs.google.com/spreadsheet/ccc?key=0AgtalLhlHdWqdEljOTBWa2JhMmF2ei1ZZWxmVU5IZFE&usp=sharing)
 
-[Zainstaluj](https://github.com/piotrex/CookiePopupBlocker/raw/master/build/cookiepopupblocker-no_logs.user.js)
+#### [Zainstaluj](https://github.com/piotrex/CookiePopupBlocker/raw/master/build/cookiepopupblocker-no_logs.user.js) ####
+
+Domyślnie jest skonfigurowany tak, aby działał tylko na stronach zakończonych końcówką .pl (żeby nie wprowadzać opóźnień na niepolskich stronach). 
 
 (*) - jedynie na Greasemonkey były robione testy, choć powinno wszystko działać na innych menedżerach skryptów/przeglądarkach
 
@@ -17,7 +19,7 @@ Ze 100 najpopularniejszych w Polsce stron ([wg ALEXA](http://e-spec.pl/najpoular
  - 48 strony mają blokowany baner,
  - 49 stron nie wyświetla żadnego komunikatu o ciasteczkach (większość na niepolskich serwerach),
 
-Łącznie na ok. 180 komunikatów 92% zablokowane, 2 "false positive" (jak-zablokowac-cookies.pl oraz linked.in)
+Łącznie na ok. 180 komunikatów 92% zablokowane, 2 "false positive" (jak-zablokowac-cookies.pl oraz linkedin.com)
 
 [Lista wszystkich stron z problem blokowania](https://github.com/piotrex/CookiePopupBlocker/blob/master/tests.md)
 

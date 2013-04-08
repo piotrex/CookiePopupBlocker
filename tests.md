@@ -1,6 +1,6 @@
 ###  false positives:  ###
 - http://jak-zablokowac-cookies.pl/
-- linkedin
+- linkedin.com
 
 ### niezablokowane: ###
 - elektroda środek
@@ -18,11 +18,10 @@
 - http://infoludek.pl/ - środek
 - http://www.pkp.com.pl/ textContent > 1000 (1248)
 - lifehacking.pl - "p"
-- http://jak-zablokowac-cookies.pl/
 
 ### zablokowane, ale są pozostałości ###
 - (brak)
 
-169 zablokowanych
-14 niezablokowanych
+173 zablokowanych
+15 niezablokowanych
 92% blokowanych
