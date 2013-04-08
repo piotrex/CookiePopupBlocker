@@ -5,7 +5,7 @@ Skrypt do Greasemonkey(*) blokujący wyskakujące okienka/banery z informacjami 
 
 [](https://docs.google.com/spreadsheet/ccc?key=0AgtalLhlHdWqdEljOTBWa2JhMmF2ei1ZZWxmVU5IZFE&usp=sharing)
 
-#### [Zainstaluj](https://github.com/piotrex/CookiePopupBlocker/raw/master/build/cookiepopupblocker-no_logs.user.js) ####
+#### [Zainstaluj](http://goo.gl/FMexU) ####
 
 Domyślnie jest skonfigurowany tak, aby działał tylko na stronach zakończonych końcówką .pl (żeby nie wprowadzać opóźnień na niepolskich stronach). 
 
