@@ -6,7 +6,7 @@ Skrypt znajduje i blokuje wyskakujące okienka/banery z informacjami o używaniu
 Na Firefoksie potrzebujesz rozszerzenia [Greasemonkey](https://addons.mozilla.org/firefox/addon/greasemonkey/)/[Scriptish](https://addons.mozilla.org/firefox/addon/scriptish/) [](https://docs.google.com/spreadsheet/ccc?key=0AgtalLhlHdWqdEljOTBWa2JhMmF2ei1ZZWxmVU5IZFE&usp=sharing).
 Na Chrome [Tampermonkey](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo) (albo zapisz plik skryptu i przeciągnij go do ustawień rozszerzeń). Więcej nie testowałem.
 
-#### [<center>Zainstaluj</center>](http://goo.gl/FMexU) ####
+#### [<div align="center">Zainstaluj</div>](http://goo.gl/FMexU) ####
 
 
 ### Testy ###
