@@ -10,22 +10,17 @@
 #endif
 
 #define IF_DEFINED(x,default) ((typeof (x) !== 'undefined') ?x :default)
-#define SHOW_WHEN(x,when_is) (  ((x)==when_is) ?(alert(#x + "=\n\n" + String(x)),(x)) :(x)  )
+#define SHOW_WHEN(x,when_is) (  ((x)==when_is) ?(alert(#x + "\n==\n" + #when_is),(x)) :(x)  )
 // http://jsperf.com/browser-diet-cache-array-length/10
 #define FOR_EACH(array,counter) for (var counter=0, array ## _length=array.length ; counter<array ## _length ; counter++)
 
 // ==UserScript==
 // @name           CookiePopupBlocker
-// @version        1.2.2
+// @version        1.3.0
 // @description    Blokuje banery z informacją o używaniu przez witrynę cookies
 // @run-at         document-start
 // @namespace      https://github.com/piotrex
-#if DEBUG==1 || MAKE_LOGS==1
 // @include        *
-#else
-// @include        http://*.pl*
-// @include        https://*.pl*
-#endif
 #if MAKE_LOGS==0
 // @grant          none
 #elif MAKE_LOGS==1
@@ -33,6 +28,9 @@
 // @grant          GM_getValue
 // @grant          GM_setValue
 // @grant          GM_deleteValue
+// @grant          GM_registerMenuCommand
+#endif
+#if DEBUG==1
 // @grant          GM_registerMenuCommand
 #endif
 #if MAKE_LOGS==1
@@ -46,8 +44,11 @@
 // @icon           https://raw.github.com/piotrex/CookiePopupBlocker/master/icon/32x32.png
 // ==/UserScript==
 
-#define BLOCKED window.CPB_blocked_ed5gdg7f
-BLOCKED = null;
+#define IS_BLOCKED window.CPB_is_blocked_ed5g
+#define BLOCKED_NODE window.CBP_blocked_node_gT6E
+#define BLOCKED_PARENT_NODE window.CBP_blocked_parent_node_hf7r
+#define REPLACING_NODE window.CBP_replacing_node_j8F4
+IS_BLOCKED = null;
 if(window.self === window.top)
 {
     ////////////////////////////////////////////////////
@@ -57,6 +58,13 @@ if(window.self === window.top)
     #if MAKE_LOGS==1 || DEBUG==1
 
     #define STORAGE_URL "https://script.google.com/macros/s/AKfycbyfPf_UT7Dndf7Z_FPvUIC-eIwhS8jijQDuugp2bk3gmhSS8Zbu/exec"
+    
+    function GM__changeJsonAttr(json_name, attr_name, new_value)
+    {
+        var json_value = JSON.parse(GM_getValue(json_name, "{}"));
+        json_value[attr_name] = new_value;
+        GM_setValue(json_name, JSON.stringify(json_value));
+    }
     
     // http://stackoverflow.com/a/6169703/1794387
     function XDomainOneWayPOST(_url,/*Array of Objects*/ _data)
@@ -154,6 +162,64 @@ if(window.self === window.top)
         return false;
     }
     
+    function callOneTimeOnTitleExist(callback)
+    {
+        var head = document.getElementsByTagName("head")[0];
+        
+        if( head.getElementsByTagName("title").length > 0 ) // i.e.:  if (title node exists) 
+        {
+            if(document.title.length > 0) 
+                callback();
+            else // if title is added by script (don't know if necessary)
+            {
+                var title_node = head.getElementsByTagName("title")[0];
+            
+                var title_observer = new MUTATIONOBSERVER(
+                    function(mutations, observer) 
+                    {
+                        callback();
+                        observer.disconnect();
+                        return;
+                    }
+                ); 
+                title_observer.observe(
+                    title_node, 
+                    { subtree: true, characterData:true, childList: true, attributes: true }
+                );
+            }
+        }
+        else
+        {
+            var title_observer = new MUTATIONOBSERVER(
+                function(mutations, observer) 
+                {
+                    FOR_EACH(mutations,k)
+                    {
+                        if(mutations[k].type === 'childList')
+                        {
+                            var added_nodes = mutations[k].addedNodes;
+                            FOR_EACH(added_nodes,i)
+                            {
+                                if(added_nodes[i].nodeName === 'TITLE')
+                                {
+                                    callback();
+                                    observer.disconnect();
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+            ); 
+            
+            
+            title_observer.observe(
+                head, 
+                { subtree: true, childList: true }
+            );
+        }
+    }
+    
     ////////////////////////////////////////////////////
     //  Script specific functions
     ////////////////////////////////////////////////////
@@ -195,9 +261,26 @@ if(window.self === window.top)
         }
     }    
     #endif
+    #if DEBUG==1
+    function cmd_blockChosen()
+    {
+        var node = eval(prompt("enter node JS object"));
+        blockCookieNode(node);
+    }   
+    #endif
     
-    var cookie_ids = [/cook/i];
-    function isCookieLabeled_stronger(node)
+    
+    
+    function isSiteAboutCookies()
+    {
+        if(/cookie|ciastecz/i.test(document.title))
+            return true;
+        else
+            return false;
+    }
+    
+    var cookie_ids = [/cook|alert|popup/i];
+    function isCookieLabeled_weaker(node)
     {
         if( cookie_ids[0].test(node.id) ||
             cookie_ids[0].test(node.className) )
@@ -205,7 +288,7 @@ if(window.self === window.top)
         else
             return false;
     }
-    function isCookieLabeled_weaker(node)
+    function isCookieLabeled_stronger(node) 
     {
         if( /cookie/i.test(node.id) ||
             /cookie/i.test(node.className) )
@@ -220,7 +303,7 @@ if(window.self === window.top)
         if(node.nodeName.toUpperCase()  === 'IFRAME')
         {
             try {
-                node_text = node.contentDocument.body.textContent;
+                node_text = node.contentWindow.document.body.textContent;
             }
             catch(e) {
                 node_text = '';
@@ -232,13 +315,14 @@ if(window.self === window.top)
         return node_text;
     }
     
-    var cookie_words = [/cookie|ciastecz/i, /u(ż|z)ywa|korzyst|stosuje|pos(ł|l)ugu/i, /wiedzie|wi(ę|e)cej|informacj|szczeg|polity|akcept|zgod|czym s(ą|a)|przegl(a|ą)dark/i];
-    var footer_words = [/©|copyright|creative/i]; /* "creative commons" */
+    var cookie_words = [/cookie|ciastecz/i, /u(ż|z)ywa|korzyst|stosuje|pos(ł|l)ugu/i, /stron|witryn|serwis|portal|jemy/i,/wiedzie|wi(ę|e)cej|informacj|szczeg|polity|akcept|zgod|czym s(ą|a)|przegl(a|ą)dar/i];
+    var footer_words = [/©|copyright|creative|zastrzeżone/i]; /* "creative commons", "wszelkie prawa zastrzeżone" */ 
     function isCookieContent(node_content)
     {
         if( cookie_words[0].test(node_content) && 
             cookie_words[1].test(node_content) && 
-            cookie_words[2].test(node_content) )
+            cookie_words[2].test(node_content) && 
+            cookie_words[3].test(node_content) )
         {       
             if (footer_words[0].test(node_content)) 
                 return false;
@@ -257,17 +341,33 @@ if(window.self === window.top)
             return false;
     }
     
-    function blockCookieNode(node)
+    function blockCookieNode(_node)
     {
-    #if MAKE_LOGS==1
-        GM_setValue(window.location.hostname, JSON.stringify({css:getCssSelector(node), text:IF_DEFINED(node.textContent,''), blocked:true, tag_name: node.nodeName}));
-        cmd_sendLogs();
-        cmd_clearLogs();                    
-    #endif
+        BLOCKED_PARENT_NODE = _node.parentNode;
+        REPLACING_NODE = document.createElement("div");
+        REPLACING_NODE.id = 'CPB_REPLACING_NODE';
+        BLOCKED_NODE = _node.parentNode.replaceChild(REPLACING_NODE, _node);
         
-        node.parentNode.removeChild(node);          
-        BLOCKED = true;
+        IS_BLOCKED = true;
+        
+    #if MAKE_LOGS==1
+        GM_setValue(window.location.hostname, JSON.stringify({css:getCssSelector(_node), text:getContent(_node), blocked:IS_BLOCKED, tag_name: _node.nodeName, info:'-'}));
+        // JSON - IE>=8
+    #endif
     }   
+    
+    function unblockCookieNode()
+    {
+        BLOCKED_PARENT_NODE.replaceChild(BLOCKED_NODE, REPLACING_NODE);
+        IS_BLOCKED = false;
+    #if MAKE_LOGS==1
+        GM__changeJsonAttr(window.location.hostname, 'info', 'PAGE_ABOUT_COKIES');
+        GM__changeJsonAttr(window.location.hostname, 'blocked', IS_BLOCKED);
+        cmd_sendLogs();
+        cmd_clearLogs();
+    #endif
+    }
+   
     
     #if DEBUG==1
     var scanned =[];
@@ -275,7 +375,7 @@ if(window.self === window.top)
     // runed at document.body has been loaded (root_node=document.body) or it is inserted node to doc after doc loaded
     function scanAndBlock(root_node)
     {
-        var wanted_nodes = ["DIV","IFRAME"];
+        var wanted_nodes = ["DIV","IFRAME","P"];
         var node_content, node_curr;
         
         var nodes = getNodesInTreeByNodeName(root_node, wanted_nodes);
@@ -295,8 +395,8 @@ if(window.self === window.top)
             else
                 scanned.push(node_curr);
         #endif
-            if( node_i < 5 || // initial filter
-                nodes.length-1 - node_i < 10 || 
+            if( node_i < 7 || // initial filter
+                nodes.length-1 - node_i < 11 || 
                 isCookieLabeled_weaker(node_curr) )
             {
                 if (isCookieLabeled_stronger(node_curr))
@@ -323,7 +423,7 @@ if(window.self === window.top)
                         blockCookieNode(node_curr);
                         return;
                     }
-                    else // hasn't cookiecontent? skip all descendats 
+                    else // hasn't cookiecontent? skip all descendants 
                     {   
                         do 
                         {
@@ -352,19 +452,8 @@ if(window.self === window.top)
     ////////////////////////////////////////////////////
     
     #if MAKE_LOGS==1
-    GM_setValue(window.location.hostname, JSON.stringify({'css':'', 'text':'', 'blocked':false, 'tag_name':null}));
+    GM_setValue(window.location.hostname, JSON.stringify({'css':'', 'text':'', 'blocked':false, 'tag_name':null, 'info':'-'}));
     #endif
-    
-    // var interval = 500;
-    // var repeating_time = 10000;
-    // var next_time = 0;
-    // function trigger() 
-    // {
-        // next_time += interval;
-        // if (BLOCKED!==true && next_time < repeating_time && document.readyState !== 'complete')
-            // setTimeout(trigger, interval);
-    // }    
-    //setTimeout(trigger,   interval);
     
     function dom_listener(mutations, observer)
     {
@@ -375,16 +464,24 @@ if(window.self === window.top)
                 for(var node_i = 0, added_nodes_length = added_nodes.length; node_i < added_nodes_length ; node_i++)
                 {
                     node_curr = added_nodes[node_i];
-                    if(BLOCKED)
+                    if(IS_BLOCKED)
                     {
                         observer.disconnect();
                         return;
                     }
                     
                     scanAndBlock( node_curr );
+                    if(IS_BLOCKED)
+                        callOneTimeOnTitleExist(
+                            function()
+                            {
+                                if ( isSiteAboutCookies() )
+                                    unblockCookieNode();
+                            }
+                        );
                     
                     // Is below necessary ??
-                    // do // skip all descendats - they are scaned in scanAndBlock
+                    // do // skip all descendants - they are scaned in scanAndBlock
                     // {
                         // node_i++;                           
                     // } while ( typeof added_nodes[node_i+1] !== 'undefined' && isDescendant(node_curr, added_nodes[node_i+1]) );                        
@@ -392,41 +489,75 @@ if(window.self === window.top)
         }
     }
     
-    var observer = new MutationObserver(dom_listener);      
-    observer.observe(document, {childList : true, subtree: true});
+    // addEventListener: IE >= 9
+    #define ADD_EVENT_LISTENER(OBJ) ((typeof OBJ.addEventListener !== 'undefined') ?OBJ.addEventListener :OBJ.attachEvent)
     
-    document.addEventListener(
-        'readystatechange', 
-        function()
-        {
-            if(document.readyState === 'interactive')
+    // due detecting "cookie popup" is simplified, on many pages about cookies there is detected "false positive", 
+    // so on these pages we are don't try block any popups
+    if( !isSiteAboutCookies() ) 
+    {
+        // FF >=14 CHR >=18
+        var MUTATIONOBSERVER = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
+        
+        var doc_observer = new MUTATIONOBSERVER(dom_listener);      
+        doc_observer.observe(document, {childList : true, subtree: true});
+        
+        ADD_EVENT_LISTENER(document)(
+            'readystatechange', 
+            function()
             {
-                if( ! BLOCKED )
-                    scanAndBlock(document.body);
-            }
-        }, 
-        /*useCapture = */ true
-    );
+                if(document.readyState === 'interactive')
+                {
+                    if( !IS_BLOCKED )
+                    {
+                        scanAndBlock(document.body);
+                        if(IS_BLOCKED)
+                            callOneTimeOnTitleExist(
+                                function()
+                                {
+                                    if ( isSiteAboutCookies() )
+                                        unblockCookieNode();
+                                }
+                            );
+                    }
+                }
+            }, 
+            /*useCapture = */ true
+        );
+    } 
+    #if MAKE_LOGS==1
+    else
+    {
+        GM__changeJsonAttr(window.location.hostname, 'info', 'PAGE_ABOUT_COKIES');
+        cmd_sendLogs();
+        cmd_clearLogs();
+    }
+    #endif
+    
     
     #if MAKE_LOGS==1
-    document.addEventListener(
+    ADD_EVENT_LISTENER(document)(
         'readystatechange', 
         function()
         {
             if(document.readyState === 'complete')
             {
-                var storage_log = JSON.parse(GM_getValue(window.location.hostname, {}));
-                storage_log['cookie_found'] = /cookie/i.test(document.body.textContent);
-                GM_setValue(window.location.hostname, JSON.stringify(storage_log));
+                if( !IS_BLOCKED )
+                {
+                    GM__changeJsonAttr(window.location.hostname, 'cookie_found', /cookie/i.test(document.body.textContent));
+                }
             }
         }
     );
     #endif
     
     #if MAKE_LOGS==1
-    
     GM_registerMenuCommand("Show logs", cmd_showLogs);
     GM_registerMenuCommand("Send and clear logs", function(){cmd_sendLogs();cmd_clearLogs();});
-    
     #endif
+    
+    #if DEBUG==1
+    GM_registerMenuCommand("Block chosen node", cmd_blockChosen);
+    #endif
+   
 }

@@ -1,28 +1,22 @@
 ###  false positives:  ###
-- http://jak-zablokowac-cookies.pl/
-- linkedin.com
+- benchmark.pl - blokowany tekst "Polityka Cookies"
 
 ### niezablokowane: ###
-- elektroda środek
-- skapiec.pl środek
-- citeam.pl nie div/inframe - "p"
-- http://www.jelenia.pl/ środek
-- http://www.familie.pl/ obrazek
 - komunikacja.bialystok.pl -konieczna zgoda
-- jak-zablokowac-cookies.pl - false pos
+- jak-zablokowac-cookies.pl - strona o cookies
 - http://www.mondeoklubpolska.pl/ - środek, nie cookie labeled
-- forum.benchmark.pl - konieczna zgoda
+- forum.benchmark.pl - więcej niż jeden cookie node
 - http://fiatklubpolska.pl/strona-glowna/ środek, nie cookie labeled
 - http://virginmobile.pl/ - obrazek, nie cookie labeled
 - http://www.viatoll.pl/pl - nie div/iframe - "dd", "dt"
-- http://infoludek.pl/ - środek
 - http://www.pkp.com.pl/ textContent > 1000 (1248)
-- lifehacking.pl - "p"
-- http://www.vwgolf.pl/ ??
+- benchmark.pl
+- http://infoludek.pl/ - podwójny komunikat
 
 ### zablokowane, ale są pozostałości ###
-- (brak)
+- demotywatory, komixxy, ...
 
-173 zablokowanych
-15 niezablokowanych
-92% blokowanych
+180 zablokowanych <br>
+10 niezablokowanych <br>
+95% blokowanych <br>
+

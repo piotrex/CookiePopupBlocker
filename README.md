@@ -1,15 +1,13 @@
 CookiePopupBlocker
 ==================
 
-Skrypt do Greasemonkey(*) blokujący wyskakujące okienka/banery z informacjami o używaniu ciasteczek.
+Skrypt znajduje i blokuje wyskakujące okienka/banery z informacjami o używaniu ciasteczek.
 
-[](https://docs.google.com/spreadsheet/ccc?key=0AgtalLhlHdWqdEljOTBWa2JhMmF2ei1ZZWxmVU5IZFE&usp=sharing)
+Na Firefoksie potrzebujesz rozszerzenia [Greasemonkey](https://addons.mozilla.org/firefox/addon/greasemonkey/)/[Scriptish](https://addons.mozilla.org/firefox/addon/scriptish/) [](https://docs.google.com/spreadsheet/ccc?key=0AgtalLhlHdWqdEljOTBWa2JhMmF2ei1ZZWxmVU5IZFE&usp=sharing).
+Na Chrome [Tampermonkey](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo) (albo zapisz plik skryptu i przeciągnij go do ustawień rozszerzeń). Więcej nie testowałem.
 
-#### [Zainstaluj](http://goo.gl/FMexU) ####
+#### [<center>Zainstaluj</center>](http://goo.gl/FMexU) ####
 
-Domyślnie jest skonfigurowany tak, aby działał tylko na stronach zakończonych końcówką .pl (żeby nie wprowadzać opóźnień na niepolskich stronach). 
-
-(*) - jedynie na Greasemonkey były robione testy, choć powinno wszystko działać na innych menedżerach skryptów/przeglądarkach
 
 ### Testy ###
 Ze 100 najpopularniejszych w Polsce stron ([wg ALEXA](http://e-spec.pl/najpoularniejsze-polskie-strony-www)):
@@ -19,13 +17,26 @@ Ze 100 najpopularniejszych w Polsce stron ([wg ALEXA](http://e-spec.pl/najpoular
  - 48 strony mają blokowany baner,
  - 49 stron nie wyświetla żadnego komunikatu o ciasteczkach (większość na niepolskich serwerach),
 
-Łącznie na ok. 180 komunikatów 92% zablokowane, 2 "false positive" (jak-zablokowac-cookies.pl oraz linkedin.com)
+Łącznie na ok. 185 komunikatów jest 10 nieblokowanych (co by dawało ok. 95% skuteczności)
 
 [Lista wszystkich stron z problem blokowania](https://github.com/piotrex/CookiePopupBlocker/blob/master/tests.md)
 
-### Problemy ###
-<del>Niestety czasem potrzeba odczekać parę sekund aż komunikat będzie zablokowany.</del>
-Problem naprawiony!
+### Historia wersji ###
+
+**1.3.0**:<br>
+
+- od teraz domyślnie przeszukiwane są wszystkie strony a nie zakończone na ".pl" (ale blokowanie tylko polskich komunikatów)
+- wyłączenie blokowania na stronach piszących o ciasteczkach ze względu na blokowanie na nich tekstów, które nie są komunikatami (np. http://jak-zablokowac-cookies.pl/, http://www.komputerswiat.pl/blogi/blog-redakcyjny/2013/03/uwaga!-rozdajemy-ciasteczka.aspx)
+- większa wykrywalność, mniej "false positve'ów" - m.in. linkedin.com
+
+**1.2.2**:<br>
+
+- naprawiono problem z czekaniem na usunięcie komunikatu
+
+**1.2**:<br>
+
+- poprawiono szybkość przeszukiwania stron
+ 
 
 ### Podobne projekty ###
 - [https://github.com/r4vi/block-the-eu-cookie-shit-list](https://github.com/r4vi/block-the-eu-cookie-shit-list)
