@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Cookiepopupblocker by piotrex</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/piotrex/CookiePopupBlocker">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/piotrex/CookiePopupBlocker/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/piotrex/CookiePopupBlocker/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Cookiepopupblocker</h1>
+          <p>Skrypt blokujący banery z informacją o używaniu przez witrynę cookies</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/piotrex">piotrex</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h1>CookiePopupBlocker</h1>
+
+<p>Skrypt znajduje i blokuje wyskakujące okienka/banery z informacjami o używaniu ciasteczek.</p>
+
+<p><a href="https://docs.google.com/spreadsheet/ccc?key=0AgtalLhlHdWqdEljOTBWa2JhMmF2ei1ZZWxmVU5IZFE&amp;usp=sharing"></a></p>
+
+<p>Na Firefoksie potrzebujesz rozszerzenia <a href="https://addons.mozilla.org/firefox/addon/greasemonkey/">Greasemonkey</a>/<a href="https://addons.mozilla.org/firefox/addon/scriptish/">Scriptish</a>, na Chrome <a href="https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo">Tampermonkey</a> (albo zapisz plik skryptu klikając na "Zainstaluj" i przeciągnij go do ustawień rozszerzeń). Więcej nie testowałem.</p>
+
+<h4><a href="http://goo.gl/FMexU"><div align="center">Zainstaluj</div></a></h4>
+
+<h3>Testy</h3>
+
+<p>Jak do tej pory na ok. 185 komunikatów miałem 10 nieblokowanych.</p>
+
+<p><a href="https://github.com/piotrex/CookiePopupBlocker/blob/master/tests.md">Lista znanych stron z problem blokowania</a></p>
+
+<h3>Historia wersji</h3>
+
+<p><strong>1.4.0</strong>:<br></p>
+
+<ul>
+<li>Wprowadzenie "cache'owania" blokowanych komunikatów - czyli przy pierwszym odwiedzeniu strony jest ona parsowana w poszukiwaniu komunikatu i zapamiętywany jest jego identyfikator i potem przy ponownym wejściu na daną stronę nie parsuje ponownie tylko blokuje po identyfikatorze (ściślej: po id/class).</li>
+</ul><p><strong>1.3.0</strong>:<br></p>
+
+<ul>
+<li>od teraz domyślnie przeszukiwane są wszystkie strony, a nie tylko te zakończone na ".pl" (ale blokowanie tylko polskich komunikatów)</li>
+<li>wyłączenie blokowania na stronach piszących o ciasteczkach ze względu na blokowanie na nich tekstów, które nie są komunikatami (np. <a href="http://jak-zablokowac-cookies.pl/">http://jak-zablokowac-cookies.pl/</a>, <a href="http://www.komputerswiat.pl/blogi/blog-redakcyjny/2013/03/uwaga!-rozdajemy-ciasteczka.aspx">http://www.komputerswiat.pl/blogi/blog-redakcyjny/2013/03/uwaga!-rozdajemy-ciasteczka.aspx</a>)</li>
+<li>większa wykrywalność, mniej "false positve'ów" - np. linkedin.com</li>
+</ul><p><strong>1.2.2</strong>:<br></p>
+
+<ul>
+<li>naprawiono problem z czekaniem na usunięcie komunikatu</li>
+</ul><p><strong>1.2</strong>:<br></p>
+
+<ul>
+<li>poprawiono szybkość przeszukiwania stron</li>
+</ul><h3>Podobne projekty</h3>
+
+<ul>
+<li><a href="https://github.com/r4vi/block-the-eu-cookie-shit-list">https://github.com/r4vi/block-the-eu-cookie-shit-list</a></li>
+<li><a href="http://lubieciasteczka.net/">http://lubieciasteczka.net/</a></li>
+</ul>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
