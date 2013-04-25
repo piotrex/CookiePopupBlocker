@@ -12,7 +12,7 @@ Na Firefoksie potrzebujesz rozszerzenia [Greasemonkey](https://addons.mozilla.or
 
 ### Testy ###
 
-Jak do tej pory na ok. 185 komunikatów miałem 10 nieblokowanych.
+Jak do tej pory na ok. 185 komunikatów miałem 19 nieblokowanych.
 
 [Lista znanych stron z problem blokowania](https://github.com/piotrex/CookiePopupBlocker/blob/master/tests.md)
 

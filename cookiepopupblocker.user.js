@@ -3,6 +3,9 @@
 # // due log/debug information are sometimes overwrite so it is useful sending them to database immediately (however AUTO_SEND_LOGS isn't fully working)
 #define AUTO_SEND_LOGS 0
 
+# // for debug - not auto block (e.g. manually)
+#define DO_NOT_TRY_BLOCK_ANYTHING 0
+
 #define __YEAR__ 2013
 
 #if DEBUG==1
@@ -18,7 +21,7 @@
 
 // ==UserScript==
 // @name           CookiePopupBlocker
-// @version        1.4.0
+// @version        1.4.1
 // @description    Blokuje banery z informacją o używaniu przez witrynę cookies
 // @run-at         document-start
 // @namespace      https://github.com/piotrex
@@ -47,18 +50,30 @@
 // @icon           https://raw.github.com/piotrex/CookiePopupBlocker/master/icon/32x32.png
 // ==/UserScript==
 
+var LANG = "pl"; // for now: only one language can be setted
+var COOKIE_TITLES = {
+    "pl":/cookie|ciastecz/i
+};
+var COOKIE_WORDS = { // ',' - means conjunction, '|' - disjunction
+    "pl": [/cookie|ciastecz/i, /u(ż|z)ywa|korzyst|stosuje|pos(ł|l)ugu/i, /stron|witryn|serwis|portal|jemy/i,/(wiedzie|wi(ę|e)cej|informacj|szczeg|polity|czym s(ą|a)|przegl(a|ą)dar)|(akcept|zgod)/i]
+};
+var FOOTER_WORDS = {
+    "pl": [/©|copyright|creative|zastrzeżone/i] /* "creative commons", "wszelkie prawa zastrzeżone" */ 
+}; 
+var COOKIE_LENGTHS = {// lowest and highest length of textContent of cookie node popup 
+    "pl": [100,1000]
+};
+    
 
-// addEventListener: IE >= 9
+# // addEventListener: IE >= 9
 #define ADD_EVENT_LISTENER(OBJ) ((typeof OBJ.addEventListener !== 'undefined') ?OBJ.addEventListener :OBJ.attachEvent)
     
 #define IS_BLOCKED window.CPB_is_blocked
 #define PAGE_ABOUT_COOKIES window.CPB_page_about_cookies
-#define BLOCKED_NODE window.CBP_blocked_node
-#define BLOCKED_PARENT_NODE window.CBP_blocked_parent_node
-#define REPLACING_NODE window.CBP_replacing_node
+#define BLOCKED_NODE window.CPB_blocked_node
+#define BLOCKED_PARENT_NODE window.CPB_blocked_parent_node
+#define REPLACING_NODE window.CPB_replacing_node
 #define COOKIE_NODE_SELECTOR window.CPB_cookie_node_selector
-IS_BLOCKED = null;
-PAGE_ABOUT_COOKIES = null;
 
 // FF >=14 CHR >=18
 var MUTATIONOBSERVER = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
@@ -212,7 +227,7 @@ if(window.self === window.top)
         var keys = GM_listValues();
         FOR_EACH(keys,k)
         {
-            if(! /^CBP_/.test(GM_getValue(keys[k])))
+            if(! /^CPB_/.test(GM_getValue(keys[k])))
                 GM_deleteValue(keys[k]);
         }
     }    
@@ -220,8 +235,8 @@ if(window.self === window.top)
     #if DEBUG==1
     function cmd_blockChosen()
     {
-        var node = eval(prompt("enter node JS object"));
-        blockCookieNode(node);
+        var selector = (prompt("enter selector"));
+        blockCookieNode(getElementBySelector(selector));
     }   
     #endif
     
@@ -236,7 +251,7 @@ if(window.self === window.top)
         {
             var classes = node.className; // when more than one class then className == 'xxxx xxxxx xx'
             var nodes=document.getElementsByClassName(classes);
-            if(nodes.length > 0)
+            if(nodes.length == 1)
                 selector = '.'+classes;
             else
                 selector = null;
@@ -290,14 +305,6 @@ if(window.self === window.top)
         }
     }
     
-    function isTitleAboutCookies()
-    {
-        if(/cookie|ciastecz/i.test(document.title))
-            return true;
-        else
-            return false;
-    }
-    
     var cookie_ids = [/cook|alert|popup/i];
     function isCookieLabeled_weaker(node)
     {
@@ -308,7 +315,7 @@ if(window.self === window.top)
             return false;
     }
     function isCookieLabeled_stronger(node) 
-    {
+    { 
         if( /cookie/i.test(node.id) ||
             /cookie/i.test(node.className) )
             return true;
@@ -334,27 +341,23 @@ if(window.self === window.top)
         return node_text;
     }
     
-    var cookie_words = [/cookie|ciastecz/i, /u(ż|z)ywa|korzyst|stosuje|pos(ł|l)ugu/i, /stron|witryn|serwis|portal|jemy/i,/wiedzie|wi(ę|e)cej|informacj|szczeg|polity|akcept|zgod|czym s(ą|a)|przegl(a|ą)dar/i];
-    var footer_words = [/©|copyright|creative|zastrzeżone/i]; /* "creative commons", "wszelkie prawa zastrzeżone" */ 
     function isCookieContent(node_content)
     {
-        if( cookie_words[0].test(node_content) && 
-            cookie_words[1].test(node_content) && 
-            cookie_words[2].test(node_content) && 
-            cookie_words[3].test(node_content) )
-        {       
-            if (footer_words[0].test(node_content)) 
+        var cookie_words = COOKIE_WORDS[LANG];
+        FOR_EACH(cookie_words,i)
+            if( !cookie_words[i].test(node_content) )
                 return false;
-            else
-                return true;
-        }
-        else
+        
+        if (FOOTER_WORDS[LANG][0].test(node_content)) 
             return false;
+        // else:    
+        return true;
     }
+    
     function isCookieLength(node_content)
     {
-        if( node_content.length > 100 &&
-            node_content.length < 1000 )
+        if( node_content.length > COOKIE_LENGTHS[LANG][0] &&
+            node_content.length < COOKIE_LENGTHS[LANG][1] )
             return true;
         else
             return false;
@@ -362,6 +365,8 @@ if(window.self === window.top)
     
     function blockCookieNode(_node)
     {
+        IS_BLOCKED = true;
+    
     #if MAKE_LOGS==1
         var style_obj={};
         for(var attr in _node.style)
@@ -370,7 +375,7 @@ if(window.self === window.top)
             
         GM__changeJsonAttr(window.location.hostname, 'css', getCssSelector(_node));
         GM__changeJsonAttr(window.location.hostname, 'text', getContent(_node));
-        GM__changeJsonAttr(window.location.hostname, 'blocked', true);
+        GM__changeJsonAttr(window.location.hostname, 'blocked', IS_BLOCKED);
         GM__changeJsonAttr(window.location.hostname, 'tag_name', _node.nodeName);
         GM__changeJsonAttr(window.location.hostname, 'style', JSON.stringify(style_obj));  // JSON - IE>=8
     #endif
@@ -387,7 +392,6 @@ if(window.self === window.top)
         REPLACING_NODE = document.createElement("div");
         BLOCKED_NODE = _node.parentNode.replaceChild(REPLACING_NODE, _node); // block node
         REPLACING_NODE.id = 'CPB_REPLACING_NODE';
-        IS_BLOCKED = true;
     }   
     
     function unblockCookieNode()
@@ -399,7 +403,6 @@ if(window.self === window.top)
             localStorage.removeItem('CPB_COOKIE_NODE');
         
     #if MAKE_LOGS==1
-        GM__changeJsonAttr(window.location.hostname, 'info', 'PAGE_ABOUT_COKIES');
         GM__changeJsonAttr(window.location.hostname, 'blocked', IS_BLOCKED);
     #endif
     }
@@ -431,16 +434,12 @@ if(window.self === window.top)
             else
                 scanned.push(node_curr);
         #endif
-            if( node_i < 7 || // initial filter
+            
+            // initial filter
+            if( node_i < 7 || 
                 nodes.length-1 - node_i < 11 || 
                 isCookieLabeled_weaker(node_curr) )
             {
-                if (isCookieLabeled_stronger(node_curr))
-                {
-                    blockCookieNode(node_curr);
-                    return;
-                }               
-                // else:
                 node_content = getContent(node_curr);
                 if ( isCookieLength(node_content) )
                 {
@@ -481,11 +480,10 @@ if(window.self === window.top)
             }
         }
     }
-    
+        
     function callOneTimeOnTitleExist(callback)
     {
         var head = document.getElementsByTagName("head")[0];
-        // FF >=14 CHR >=18
         
         if( head.getElementsByTagName("title").length > 0 ) // i.e.:  if (title node exists) 
         {
@@ -540,8 +538,22 @@ if(window.self === window.top)
         }
     }
     
+    function callWhenPageAboutCookies(callback)
+    {
+        if(COOKIE_TITLES[LANG].test(window.location.href))
+            callback();
+        else 
+            callOneTimeOnTitleExist(
+                function()
+                {
+                    if(COOKIE_TITLES[LANG].test(document.title))
+                        callback();
+                }
+            );
+    }
     
-    function startLookoutForCookieNode()
+    
+    function huntCookieNode_start()
     {
         function dom_listener(mutations, observer)
         {
@@ -560,16 +572,7 @@ if(window.self === window.top)
                         
                         scanAndBlock( node_curr );
                         if(IS_BLOCKED)
-                            callOneTimeOnTitleExist(
-                                function()
-                                {
-                                    if ( isTitleAboutCookies() )
-                                    {
-                                        unblockCookieNode();
-                                        PAGE_ABOUT_COOKIES = true;
-                                    }    
-                                }
-                            );
+                            unblockWhenPageAboutCookies();
                         
                         // Is below necessary ??
                         // do // skip all descendants - they are scaned in scanAndBlock
@@ -578,14 +581,13 @@ if(window.self === window.top)
                         // } while ( typeof added_nodes[node_i+1] !== 'undefined' && isDescendant(node_curr, added_nodes[node_i+1]) );                        
                     }           
             }
-        }
-        
+        }        
         
         var doc_observer = new MUTATIONOBSERVER(dom_listener);      
         doc_observer.observe(document, {childList : true, subtree: true});
     }
     
-    function startLookoutForMatchedCookieNode()
+    function startHuntMatchedCookieNode()
     {
         function dom_listener(mutations, observer)
         {
@@ -611,34 +613,58 @@ if(window.self === window.top)
         return doc_observer;
     }
     
-    function blockInDoc_ifTitleNotAboutCookies()
+    function unblockWhenPageAboutCookies()
     {
-        scanAndBlock(document.body);
-        if(IS_BLOCKED)
-            callOneTimeOnTitleExist(
-                function()
-                {
-                    if ( isTitleAboutCookies() )
-                    {
-                        unblockCookieNode();
-                    #if MAKE_LOGS==1 && AUTO_SEND_LOGS==1
-                        cmd_sendLogs();cmd_clearLogs();
-                    #endif
-                    }
-                }
-            );
+        callWhenPageAboutCookies(
+            function()
+            {
+                PAGE_ABOUT_COKIES = true;
+                unblockCookieNode();
+            #if MAKE_LOGS==1    
+                GM__changeJsonAttr(window.location.hostname, 'info', 'PAGE_ABOUT_COKIES');
+            #endif                    
+            #if MAKE_LOGS==1 && AUTO_SEND_LOGS==1
+                cmd_sendLogs();cmd_clearLogs();
+            #endif
+            }
+        );
     }
     
+    function searchCookieNode_init()
+    {
+        callWhenPageAboutCookies(
+            function() {
+                PAGE_ABOUT_COKIES = true;
+            #if MAKE_LOGS==1    
+                GM__changeJsonAttr(window.location.hostname, 'info', 'PAGE_ABOUT_COKIES');
+            #endif 
+            }
+        );
+    }
+    
+    function searchCookieNode_now()
+    {
+        if( !PAGE_ABOUT_COKIES ) 
+        {
+            scanAndBlock(document.body);
+            if(IS_BLOCKED)
+                unblockWhenPageAboutCookies();
+        }
+    }
        
     ////////////////////////////////////////////////////
     //  Start main script instructions
     ////////////////////////////////////////////////////
-    
+    DEBUGGER
+    //// Default values
+    IS_BLOCKED = null;
+    PAGE_ABOUT_COOKIES = null; // due detecting "cookie popup" is simplified, on many pages about cookies there is detected "false positive", so on these pages we are don't try block any popups
     #if MAKE_LOGS==1
-    // default values in log record
-    GM_setValue(window.location.hostname, JSON.stringify({'css':'', 'text':'', 'blocked':false, 'tag_name':null, 'info':'-', 'style':''}));
+    GM_setValue(window.location.hostname, JSON.stringify({'css':'', 'text':'', 'blocked':false, 'tag_name':null, 'info':'-', 'style':'', 'lang':LANG})); // default values in log record
     #endif
+       
     
+    #if DO_NOT_TRY_BLOCK_ANYTHING==0
     // localStorage: IE >= 8, FF: dom.storage.enabled has to be enabled
     var is_storage_support = ! ((typeof(Storage)==="undefined") || (localStorage === null));
     
@@ -646,7 +672,7 @@ if(window.self === window.top)
     {
         COOKIE_NODE_SELECTOR = localStorage.getItem('CPB_COOKIE_NODE') ;
         
-        var matched_cookie_node_observer = startLookoutForMatchedCookieNode();
+        var matched_cookie_node_observer = startHuntMatchedCookieNode();
         
         ADD_EVENT_LISTENER(document)(
             'readystatechange', 
@@ -657,12 +683,14 @@ if(window.self === window.top)
                     var node = getElementBySelector(COOKIE_NODE_SELECTOR);
                     if(node === "will_be_no_elements")
                     {
+                    // change from blocking cookie mode from cache  to searching cookie node 
                         matched_cookie_node_observer.disconnect();
-                        startLookoutForCookieNode();
+                        searchCookieNode_init();
+                        huntCookieNode_start();
                     #if MAKE_LOGS==1
                         GM__changeJsonAttr(window.location.hostname, 'info', 'FROM_CACHE_TO_SEARCHING_MODE');
                     #endif
-                        blockInDoc_ifTitleNotAboutCookies();
+                        searchCookieNode_now();
                     }                    
                     else if(node !== "no_elements")
                     {
@@ -674,12 +702,14 @@ if(window.self === window.top)
                 }
                 else if(document.readyState === 'complete' && !IS_BLOCKED) // if (all page elements are loaded and nothing has been blocked yet)
                 {
+                // change from blocking cookie mode from cache  to searching cookie node 
                     matched_cookie_node_observer.disconnect();
-                    startLookoutForCookieNode();
+                    searchCookieNode_init();
+                    huntCookieNode_start();
                 #if MAKE_LOGS==1
                     GM__changeJsonAttr(window.location.hostname, 'info', 'FROM_CACHE_TO_SEARCHING_MODE');
                 #endif
-                    blockInDoc_ifTitleNotAboutCookies();
+                    searchCookieNode_now();
                 }
             }, 
             /*useCapture = */ true
@@ -696,38 +726,26 @@ if(window.self === window.top)
         GM__changeJsonAttr(window.location.hostname, 'info', 'SEARCHING_MODE');
     #endif
         
-        // due detecting "cookie popup" is simplified, on many pages about cookies there is detected "false positive", 
-        // so on these pages we are don't try block any popups
-        if( !isTitleAboutCookies() ) 
-        {
-            startLookoutForCookieNode();
-            
-            // Search for cookie node in document when will be loaded
-            ADD_EVENT_LISTENER(document)(
-                'readystatechange', 
-                function()
+        searchCookieNode_init();
+        huntCookieNode_start();
+        
+        // Search for cookie node in document when will be loaded
+        ADD_EVENT_LISTENER(document)(
+            'readystatechange', 
+            function()
+            {
+                if(document.readyState === 'interactive' && !IS_BLOCKED )
                 {
-                    if(document.readyState === 'interactive' && !IS_BLOCKED)
-                    {
-                        blockInDoc_ifTitleNotAboutCookies();
-                    }
-                }, 
-                /*useCapture = */ true
-            );
-        }
-    #if MAKE_LOGS==1
-        else
-        {
-            GM__changeJsonAttr(window.location.hostname, 'info', 'PAGE_ABOUT_COKIES');
-            #if MAKE_LOGS==1 && AUTO_SEND_LOGS==1
-            cmd_sendLogs();cmd_clearLogs();
-            #endif
-        }
-    #endif
+                    searchCookieNode_now();
+                }
+            }, 
+            /*useCapture = */ true
+        );
         
         if( !is_storage_support )
             console.error("access to localStorage failed");  
     }
+    #endif
     
     #if MAKE_LOGS==1
     ADD_EVENT_LISTENER(document)(
@@ -736,10 +754,7 @@ if(window.self === window.top)
         {
             if(document.readyState === 'complete')
             {
-                if( !IS_BLOCKED )
-                {
-                    GM__changeJsonAttr(window.location.hostname, 'cookie_found', /cookie/i.test(document.body.textContent));
-                }
+                GM__changeJsonAttr(window.location.hostname, 'cookie_found', /cookie/i.test(document.body.textContent));
             }
         }
     );
@@ -751,6 +766,7 @@ if(window.self === window.top)
     #endif
     
     #if DEBUG==1
+    GM_registerMenuCommand("Unblock node", unblockCookieNode);
     GM_registerMenuCommand("Block chosen node", cmd_blockChosen);
     #endif
 }
