@@ -21,7 +21,7 @@
 
 // ==UserScript==
 // @name           CookiePopupBlocker
-// @version        1.4.1
+// @version        1.4.2
 // @description    Blokuje banery z informacją o używaniu przez witrynę cookies
 // @run-at         document-start
 // @namespace      https://github.com/piotrex

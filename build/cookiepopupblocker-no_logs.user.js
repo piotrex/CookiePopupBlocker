@@ -1,12 +1,11 @@
 // ==UserScript==
 // @name           CookiePopupBlocker
-// @version        1.4.1
+// @version        1.4.2
 // @description    Blokuje banery z informacją o używaniu przez witrynę cookies
 // @run-at         document-start
 // @namespace      https://github.com/piotrex
 // @include        *
 // @grant          none
-// @grant          GM_registerMenuCommand
 // @downloadURL    https://raw.github.com/piotrex/CookiePopupBlocker/master/build/cookiepopupblocker-no_logs.user.js
 // @updateURL      https://raw.github.com/piotrex/CookiePopupBlocker/master/build/cookiepopupblocker-no_logs.user.js
 // @homepage       https://github.com/piotrex/CookiePopupBlocker
@@ -15,20 +14,16 @@
 // ==/UserScript==
 var LANG = "pl"; // for now: only one language can be setted
 var COOKIE_TITLES = {
-    "pl":/cookie|ciastecz/i,
-    "en":/cookie/i
+    "pl":/cookie|ciastecz/i
 };
 var COOKIE_WORDS = { // ',' - means conjunction, '|' - disjunction
-    "pl": [/cookie|ciastecz/i, /u(ż|z)ywa|korzyst|stosuje|pos(ł|l)ugu/i, /stron|witryn|serwis|portal|jemy/i,/(wiedzie|wi(ę|e)cej|informacj|szczeg|polity|czym s(ą|a)|przegl(a|ą)dar)|(akcept|zgod)/i],
-    "en":[/cookie/i, /we |site|our |service/i, /use|store/i, /agree|accept|assume|posit|presume|consent|let|allow|grant|permit|accord|leave|continue/i, /work|experience|purpose|provide|deliver|enhance|enable|preference|let|log|acount|advert|stats/i, /find out|learn|more|info|details|policy|preference|settings|browser|manage/i]
+    "pl": [/cookie|ciastecz/i, /u(ż|z)ywa|korzyst|stosuje|pos(ł|l)ugu/i, /stron|witryn|serwis|portal|jemy/i,/(wiedzie|wi(ę|e)cej|informacj|szczeg|polity|czym s(ą|a)|przegl(a|ą)dar)|(akcept|zgod)/i]
 };
 var FOOTER_WORDS = {
-    "pl": [/©|copyright|creative|zastrzeżone/i], /* "creative commons", "wszelkie prawa zastrzeżone" */
-    "en": [/©|copyright|creative|reserved/i] /* "creative commons", "all rights reserved" */
+    "pl": [/©|copyright|creative|zastrzeżone/i] /* "creative commons", "wszelkie prawa zastrzeżone" */
 };
 var COOKIE_LENGTHS = {// lowest and highest length of textContent of cookie node popup 
-    "pl": [100,1000],
-    "en": [100,1000]
+    "pl": [100,1000]
 };
 // FF >=14 CHR >=18
 var MUTATIONOBSERVER = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
@@ -37,70 +32,6 @@ if(window.self === window.top)
     ////////////////////////////////////////////////////
     //  General functions
     ////////////////////////////////////////////////////
-    function GM__changeJsonAttr(json_name, attr_name, new_value)
-    {
-        var json_value = JSON.parse(GM_getValue(json_name, "{}"));
-        json_value[attr_name] = new_value;
-        GM_setValue(json_name, JSON.stringify(json_value));
-    }
-    // http://stackoverflow.com/a/6169703/1794387
-    function XDomainOneWayPOST(_url,/*Array of Objects*/ _data)
-    {
-        // Add the iframe with a unique name
-        var iframe = document.createElement("iframe");
-        var uniqueString = "CPB_hgfghf654";
-        document.body.appendChild(iframe);
-        iframe.style.display = "none";
-        iframe.contentWindow.name = uniqueString;
-        // construct a form with hidden inputs, targeting the iframe
-        var form = document.createElement("form");
-        form.target = uniqueString;
-        form.action = _url;
-        form.method = "POST";
-        // repeat for each parameter
-        var input;
-        for (var i=0, _data_length=_data.length ; i<_data_length ; i++)
-        {
-            input = document.createElement("input");
-            input.type = "hidden";
-            input.name = _data[i].name;
-            input.value = _data[i].value;
-            form.appendChild(input);
-        }
-        document.body.appendChild(form);
-        form.submit();
-    }
-    // http://stackoverflow.com/a/4588211/1794387
-    function getCssSelector(el)
-    {
-        var names = [];
-        while (el.parentNode)
-        {
-            if (el.id)
-            {
-                names.unshift('#' + el.id);
-                break;
-            }
-            else if(el.className)
-            {
-                classes = el.className.split(' ');
-                names.unshift('.'+classes[0]);
-                break;
-            }
-            else
-            {
-                if (el == el.ownerDocument.documentElement)
-                    names.unshift(el.tagName);
-                else
-                {
-                    for (var c = 1, e = el; e.previousElementSibling; e = e.previousElementSibling, c++);
-                    names.unshift(el.tagName + ":nth-child(" + c + ")");
-                }
-                el = el.parentNode;
-            }
-        }
-        return names.join(">");
-    }
     // some speed tests: http://jsperf.com/getchildbynodename
     var getNodesInTreeByNodeName = function (node, allowed_node_names)
     {
@@ -132,11 +63,6 @@ if(window.self === window.top)
     ////////////////////////////////////////////////////
     //  Script specific functions
     ////////////////////////////////////////////////////
-    function cmd_blockChosen()
-    {
-        var selector = (prompt("enter selector"));
-        blockCookieNode(getElementBySelector(selector));
-    }
     function getSelector(node) // node has to be in document (has to been not removed yet)
     {
         var selector = null;
@@ -272,7 +198,6 @@ if(window.self === window.top)
         if(typeof localStorage !== 'undefined' && typeof localStorage !== 'null')
             localStorage.removeItem('CPB_COOKIE_NODE');
     }
-    var scanned =[];
     // runed at document.body has been loaded (root_node=document.body) or it is inserted node to doc after doc loaded
     function scanAndBlock(root_node)
     {
@@ -282,17 +207,6 @@ if(window.self === window.top)
         for (var node_i = 0, nodes_length = nodes.length; node_i < nodes_length ; )
         {
             node_curr = nodes[node_i];
-            var is_dup = false;
-            for (var j=0, scanned_length=scanned.length ; j<scanned_length ; j++)
-                if(node_curr === scanned[j])
-                {
-                    is_dup = true;
-                    break;
-                }
-            if (is_dup)
-                console.log('this node has been already scanned.\n'+getCssSelector(node_curr)+'\n\n'+node_curr.textContent.substr(0, 100));
-            else
-                scanned.push(node_curr);
             // initial filter
             if( node_i < 7 ||
                 nodes.length-1 - node_i < 11 ||
@@ -487,7 +401,7 @@ if(window.self === window.top)
     ////////////////////////////////////////////////////
     //  Start main script instructions
     ////////////////////////////////////////////////////
-    debugger;
+   
     //// Default values
     window.CPB_is_blocked = null;
     window.CPB_page_about_cookies = null; // due detecting "cookie popup" is simplified, on many pages about cookies there is detected "false positive", so on these pages we are don't try block any popups
@@ -548,6 +462,4 @@ if(window.self === window.top)
         if( !is_storage_support )
             console.error("access to localStorage failed");
     }
-    GM_registerMenuCommand("Unblock node", unblockCookieNode);
-    GM_registerMenuCommand("Block chosen node", cmd_blockChosen);
 }

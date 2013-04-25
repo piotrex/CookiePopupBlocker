@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           CookiePopupBlocker
-// @version        1.4.1
+// @version        1.4.2
 // @description    Blokuje banery z informacją o używaniu przez witrynę cookies
 // @run-at         document-start
 // @namespace      https://github.com/piotrex
@@ -10,7 +10,6 @@
 // @grant          GM_setValue
 // @grant          GM_deleteValue
 // @grant          GM_registerMenuCommand
-// @grant          GM_registerMenuCommand
 // @downloadURL    https://raw.github.com/piotrex/CookiePopupBlocker/master/build/cookiepopupblocker-logs.user.js
 // @updateURL      https://raw.github.com/piotrex/CookiePopupBlocker/master/build/cookiepopupblocker-logs.user.js
 // @homepage       https://github.com/piotrex/CookiePopupBlocker
@@ -19,20 +18,16 @@
 // ==/UserScript==
 var LANG = "pl"; // for now: only one language can be setted
 var COOKIE_TITLES = {
-    "pl":/cookie|ciastecz/i,
-    "en":/cookie/i
+    "pl":/cookie|ciastecz/i
 };
 var COOKIE_WORDS = { // ',' - means conjunction, '|' - disjunction
-    "pl": [/cookie|ciastecz/i, /u(ż|z)ywa|korzyst|stosuje|pos(ł|l)ugu/i, /stron|witryn|serwis|portal|jemy/i,/(wiedzie|wi(ę|e)cej|informacj|szczeg|polity|czym s(ą|a)|przegl(a|ą)dar)|(akcept|zgod)/i],
-    "en":[/cookie/i, /we |site|our |service/i, /use|store/i, /agree|accept|assume|posit|presume|consent|let|allow|grant|permit|accord|leave|continue/i, /work|experience|purpose|provide|deliver|enhance|enable|preference|let|log|acount|advert|stats/i, /find out|learn|more|info|details|policy|preference|settings|browser|manage/i]
+    "pl": [/cookie|ciastecz/i, /u(ż|z)ywa|korzyst|stosuje|pos(ł|l)ugu/i, /stron|witryn|serwis|portal|jemy/i,/(wiedzie|wi(ę|e)cej|informacj|szczeg|polity|czym s(ą|a)|przegl(a|ą)dar)|(akcept|zgod)/i]
 };
 var FOOTER_WORDS = {
-    "pl": [/©|copyright|creative|zastrzeżone/i], /* "creative commons", "wszelkie prawa zastrzeżone" */
-    "en": [/©|copyright|creative|reserved/i] /* "creative commons", "all rights reserved" */
+    "pl": [/©|copyright|creative|zastrzeżone/i] /* "creative commons", "wszelkie prawa zastrzeżone" */
 };
 var COOKIE_LENGTHS = {// lowest and highest length of textContent of cookie node popup 
-    "pl": [100,1000],
-    "en": [100,1000]
+    "pl": [100,1000]
 };
 // FF >=14 CHR >=18
 var MUTATIONOBSERVER = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
@@ -170,11 +165,6 @@ if(window.self === window.top)
             if(! /^CPB_/.test(GM_getValue(keys[k])))
                 GM_deleteValue(keys[k]);
         }
-    }
-    function cmd_blockChosen()
-    {
-        var selector = (prompt("enter selector"));
-        blockCookieNode(getElementBySelector(selector));
     }
     function getSelector(node) // node has to be in document (has to been not removed yet)
     {
@@ -321,7 +311,6 @@ if(window.self === window.top)
             localStorage.removeItem('CPB_COOKIE_NODE');
         GM__changeJsonAttr(window.location.hostname, 'blocked', window.CPB_is_blocked);
     }
-    var scanned =[];
     // runed at document.body has been loaded (root_node=document.body) or it is inserted node to doc after doc loaded
     function scanAndBlock(root_node)
     {
@@ -331,17 +320,6 @@ if(window.self === window.top)
         for (var node_i = 0, nodes_length = nodes.length; node_i < nodes_length ; )
         {
             node_curr = nodes[node_i];
-            var is_dup = false;
-            for (var j=0, scanned_length=scanned.length ; j<scanned_length ; j++)
-                if(node_curr === scanned[j])
-                {
-                    is_dup = true;
-                    break;
-                }
-            if (is_dup)
-                console.log('this node has been already scanned.\n'+getCssSelector(node_curr)+'\n\n'+node_curr.textContent.substr(0, 100));
-            else
-                scanned.push(node_curr);
             // initial filter
             if( node_i < 7 ||
                 nodes.length-1 - node_i < 11 ||
@@ -538,7 +516,7 @@ if(window.self === window.top)
     ////////////////////////////////////////////////////
     //  Start main script instructions
     ////////////////////////////////////////////////////
-    debugger;
+   
     //// Default values
     window.CPB_is_blocked = null;
     window.CPB_page_about_cookies = null; // due detecting "cookie popup" is simplified, on many pages about cookies there is detected "false positive", so on these pages we are don't try block any popups
@@ -616,6 +594,4 @@ if(window.self === window.top)
     );
     GM_registerMenuCommand("Show logs", cmd_showLogs);
     GM_registerMenuCommand("Send and clear logs", function(){cmd_sendLogs();cmd_clearLogs();});
-    GM_registerMenuCommand("Unblock node", unblockCookieNode);
-    GM_registerMenuCommand("Block chosen node", cmd_blockChosen);
 }
