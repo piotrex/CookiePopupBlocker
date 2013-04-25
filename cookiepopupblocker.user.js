@@ -21,7 +21,7 @@
 
 // ==UserScript==
 // @name           CookiePopupBlocker
-// @version        1.4.2
+// @version        1.4.3
 // @description    Blokuje banery z informacją o używaniu przez witrynę cookies
 // @run-at         document-start
 // @namespace      https://github.com/piotrex
@@ -618,10 +618,10 @@ if(window.self === window.top)
         callWhenPageAboutCookies(
             function()
             {
-                PAGE_ABOUT_COKIES = true;
+                PAGE_ABOUT_COOKIES = true;
                 unblockCookieNode();
             #if MAKE_LOGS==1    
-                GM__changeJsonAttr(window.location.hostname, 'info', 'PAGE_ABOUT_COKIES');
+                GM__changeJsonAttr(window.location.hostname, 'info', 'PAGE_ABOUT_COOKIES');
             #endif                    
             #if MAKE_LOGS==1 && AUTO_SEND_LOGS==1
                 cmd_sendLogs();cmd_clearLogs();
@@ -634,9 +634,9 @@ if(window.self === window.top)
     {
         callWhenPageAboutCookies(
             function() {
-                PAGE_ABOUT_COKIES = true;
+                PAGE_ABOUT_COOKIES = true;
             #if MAKE_LOGS==1    
-                GM__changeJsonAttr(window.location.hostname, 'info', 'PAGE_ABOUT_COKIES');
+                GM__changeJsonAttr(window.location.hostname, 'info', 'PAGE_ABOUT_COOKIES');
             #endif 
             }
         );
@@ -644,7 +644,7 @@ if(window.self === window.top)
     
     function searchCookieNode_now()
     {
-        if( !PAGE_ABOUT_COKIES ) 
+        if( !PAGE_ABOUT_COOKIES ) 
         {
             scanAndBlock(document.body);
             if(IS_BLOCKED)

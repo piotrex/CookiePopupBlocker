@@ -21,8 +21,6 @@
 - www.bikestats.pl
 - nk.pl
 
-- http://komoorki.pl ??
-
 ### zablokowane, ale są pozostałości ###
 - demotywatory, komixxy, joemonster.org ...
 

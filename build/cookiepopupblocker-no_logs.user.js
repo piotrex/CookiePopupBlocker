@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           CookiePopupBlocker
-// @version        1.4.2
+// @version        1.4.3
 // @description    Blokuje banery z informacją o używaniu przez witrynę cookies
 // @run-at         document-start
 // @namespace      https://github.com/piotrex
@@ -376,7 +376,7 @@ if(window.self === window.top)
         callWhenPageAboutCookies(
             function()
             {
-                PAGE_ABOUT_COKIES = true;
+                window.CPB_page_about_cookies = true;
                 unblockCookieNode();
             }
         );
@@ -385,13 +385,13 @@ if(window.self === window.top)
     {
         callWhenPageAboutCookies(
             function() {
-                PAGE_ABOUT_COKIES = true;
+                window.CPB_page_about_cookies = true;
             }
         );
     }
     function searchCookieNode_now()
     {
-        if( !PAGE_ABOUT_COKIES )
+        if( !window.CPB_page_about_cookies )
         {
             scanAndBlock(document.body);
             if(window.CPB_is_blocked)
